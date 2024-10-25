@@ -9,6 +9,8 @@
 #include <functional>
 #include <opencv2/core/core.hpp>
 
+#include "focus-stack_lib_export.h"
+
 namespace focusstack {
 
 class Task_LoadImg;
