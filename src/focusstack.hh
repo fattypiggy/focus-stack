@@ -9,8 +9,6 @@
 #include <functional>
 #include <opencv2/core/core.hpp>
 
-#include "focus-stack_lib_export.h"
-
 namespace focusstack {
 
 class Task_LoadImg;
@@ -189,6 +187,6 @@ private:
 
   // Schedule the last merge task and saving of final image
   void schedule_final_merge();
-};
+  };
 
 }
