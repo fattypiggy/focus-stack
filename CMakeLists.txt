@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 3.17)
 
 project(focus-stack)
+#if(MSVC)
+#    add_compile_options(/Zc:__cplusplus)
+#endif()
+#
+#set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(OpenCV_DIR "C:/tools/opencv/mingw_build/install")
-
+#set(OpenCV_DIR "C:/tools/opencv/mingw_build/install")
+set(OpenCV_DIR "C:\/dev\/opencv\/build")
 find_package(OpenCV REQUIRED)
 
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/external/focus-stack/src)

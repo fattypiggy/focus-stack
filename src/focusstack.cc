@@ -70,6 +70,7 @@ bool FocusStack::run()
   // All temporaries except results can be released now.
   // Anything that is needed is held on by shared_ptrs in the tasks.
   reset(true);
+  m_images.clear();
 
   bool status;
   std::string errmsg;
@@ -120,6 +121,11 @@ void FocusStack::start()
   {
     m_input_images.push_back(std::make_shared<Task_LoadImg>(input, m_wait_images));
   }
+  
+  for (const cv::Mat &image : m_images)
+  {
+    m_input_images.push_back(std::make_shared<Task_LoadImg>("memimg-" + std::to_string(m_input_images.size()) + ".jpg", image));
+  }
 
   schedule_queue_processing();
 }
@@ -136,13 +142,19 @@ void FocusStack::add_image(std::string filename)
 
 void FocusStack::add_image(const cv::Mat &image)
 {
+  cv::Mat imageCopy = image.clone();
   std::string name = "memimg-" + std::to_string(m_input_images.size()) + ".jpg";
-  m_input_images.push_back(std::make_shared<Task_LoadImg>(name, image));
+  m_input_images.push_back(std::make_shared<Task_LoadImg>(name, imageCopy));
 
   if (m_worker)
   {
     schedule_queue_processing();
   }
+}
+
+void FocusStack::append_image(const cv::Mat &image)
+{
+  m_images.push_back(image);
 }
 
 void FocusStack::do_final_merge()
