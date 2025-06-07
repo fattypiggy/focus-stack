@@ -177,6 +177,20 @@ void Task_Reassign::task()
   {
     reassign_color();
   }
+  
+  // Extract original image area to remove any padding
+  if (has_valid_area() && m_valid_area.x > 0 || m_valid_area.y > 0 || 
+      m_valid_area.width < m_result.cols || m_valid_area.height < m_result.rows) {
+    m_logger->verbose("Extracting original image area: x=%d, y=%d, w=%d, h=%d from padded image %dx%d\n",
+                     m_valid_area.x, m_valid_area.y, m_valid_area.width, m_valid_area.height,
+                     m_result.cols, m_result.rows);
+    
+    // Use extract_original_area to get the unpadded image
+    m_result = extract_original_area(m_result);
+    
+    // Reset valid area to full image since we've now extracted only the valid part
+    m_valid_area = cv::Rect(0, 0, m_result.cols, m_result.rows);
+  }
 
   m_map.reset();
   m_merged.reset();

@@ -14,6 +14,9 @@ public:
   virtual bool ready_to_run();
 
   cv::Size orig_size() const { return m_orig_size; }
+  
+  // Get the original unpadded image
+  cv::Mat original_image() const { return m_original_image; }
 
 private:
   virtual void task();
@@ -22,6 +25,7 @@ private:
   std::chrono::system_clock::time_point m_wait_images_until;
   bool m_memimg;
   cv::Size m_orig_size;
+  cv::Mat m_original_image; // Original image before padding
 };
 
 

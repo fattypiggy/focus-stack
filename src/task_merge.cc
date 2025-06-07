@@ -1,5 +1,6 @@
 #include "task_merge.hh"
 #include "task_wavelet.hh"
+#include <opencv2/imgcodecs.hpp>
 
 using namespace focusstack;
 
@@ -59,6 +60,10 @@ void Task_Merge::task()
 
     m_index_map[m_images.at(i)->index()] = m_images.at(i);
   }
+
+  cv::Mat depth_visual;
+  m_depthmap.convertTo(depth_visual, CV_8U, 10.0);
+  cv::imwrite("depth_debug.bmp", depth_visual);
 
   if (m_consistency >= 1)
   {

@@ -43,7 +43,7 @@ public:
       LOG_INFO = 30,
       LOG_ERROR = 40
   };
-
+  int get_images_length() {return m_images.size(); }
   void set_inputs(const std::vector<std::string> &files) { m_inputs = files; }
   void set_images(const std::vector<cv::Mat> &images) { m_images = images; }
   void set_output(std::string output) { m_output = output; }
@@ -69,7 +69,7 @@ public:
   void set_consistency(int level) { m_consistency = level; }
   void set_denoise(float level) { m_denoise = level; }
   void set_wait_images(float seconds) { m_wait_images = seconds; }
-  void set_align_flags(int flags) { m_align_flags = static_cast<align_flags_t>(flags); }
+  void set_align_flags(int flags) { m_align_flags = static_cast<align_flags_t>(flags | ALIGN_KEEP_SIZE); }
   void set_3dviewpoint(float x, float y, float z, float zscale) { m_3dviewpoint = cv::Vec3f(x,y,z); m_3dzscale = zscale; }
   void set_3dviewpoint(std::string value) {
     std::istringstream is(value);

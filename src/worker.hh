@@ -75,13 +75,40 @@ public:
 
   cv::Mat img_cropped() const {
     cv::Mat result = img();
-    if (has_valid_area() && m_valid_area.size() != result.size())
-    {
-      cv::Mat tmp(m_valid_area.size(), result.type());
-      result(m_valid_area).copyTo(tmp);
-      result = tmp;
+    
+    // First extract the valid area (removing any padding)
+    if (has_valid_area() && (m_valid_area.x > 0 || m_valid_area.y > 0 || 
+        m_valid_area.width < result.cols || m_valid_area.height < result.rows)) {
+      result = extract_original_area(result);
     }
+    
     return result;
+  }
+
+  // Extract the original image area from an expanded image
+  cv::Mat extract_original_area(const cv::Mat& expanded_img) const
+  {
+    if (!has_valid_area()) {
+      return expanded_img; // No valid area defined, return as is
+    }
+    
+    // Check if the image is already the right size or the valid area covers the whole image
+    if (m_valid_area.x == 0 && m_valid_area.y == 0 && 
+        m_valid_area.width == expanded_img.cols && m_valid_area.height == expanded_img.rows) {
+      return expanded_img;
+    }
+    
+    // Extract the valid area from the expanded image
+    cv::Rect safeRect = m_valid_area;
+    
+    // Make sure the rectangle is within image bounds
+    safeRect.x = std::max(0, std::min(safeRect.x, expanded_img.cols - 1));
+    safeRect.y = std::max(0, std::min(safeRect.y, expanded_img.rows - 1));
+    safeRect.width = std::min(safeRect.width, expanded_img.cols - safeRect.x);
+    safeRect.height = std::min(safeRect.height, expanded_img.rows - safeRect.y);
+    
+    // Extract and return the valid region
+    return expanded_img(safeRect).clone();
   }
 
 protected:

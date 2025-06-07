@@ -64,29 +64,40 @@ void Task_LoadImg::task()
     throw std::runtime_error("Could not load " + m_filename);
   }
 
+  // Store original image size and set valid area as the entire original image
   m_orig_size = m_result.size();
   m_valid_area = cv::Rect(0, 0, m_result.cols, m_result.rows);
+  
+  // Store the original image before any padding
+  m_original_image = m_result.clone(); 
 
-  // Expand image width & height to multiple of (1 << levels) as required by wavelet decomposition
+  // Get wavelet decomposition levels required for the image
   cv::Size expanded;
   int levels = Task_Wavelet::levels_for_size(m_orig_size, &expanded);
   std::string name = basename();
+  
+  // Log original and expanded dimensions
   m_logger->verbose("%s has resolution %dx%d, using %d wavelet levels and expanding to %dx%d\n",
                     name.c_str(), m_orig_size.width, m_orig_size.height, levels,
                     expanded.width, expanded.height);
 
+  // Apply padding if needed for wavelet transform
   if (expanded != m_orig_size)
   {
     int expand_x = expanded.width - m_orig_size.width;
     int expand_y = expanded.height - m_orig_size.height;
     cv::Mat tmp(expanded.height, expanded.width, m_result.type());
 
+    // Add padding with reflection at the borders
     cv::copyMakeBorder(m_result, tmp,
                        expand_y / 2, expand_y - expand_y / 2,
                        expand_x / 2, expand_x - expand_x / 2,
                        cv::BORDER_REFLECT);
 
+    // Update result with padded image
     m_result = tmp;
+    
+    // Update valid area to point to the original image within the padded one
     m_valid_area = cv::Rect(cv::Point(expand_x / 2, expand_y / 2), m_orig_size);
   }
 }

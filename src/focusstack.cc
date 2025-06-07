@@ -34,8 +34,9 @@ FocusStack::FocusStack():
   m_align_flags(ALIGN_DEFAULT),
   m_3dviewpoint(1,1,1),
   m_3dzscale(1),
-  m_threads(std::thread::hardware_concurrency() + 1), // +1 to have extra thread to give tasks for GPU
-  m_batchsize(8),
+  m_threads(4),
+  // m_threads(std::thread::hardware_concurrency() + 1), // +1 to have extra thread to give tasks for GPU
+  m_batchsize(20),
   m_reference(-1),
   m_consistency(0),
   m_jpgquality(95),
@@ -64,8 +65,8 @@ void FocusStack::set_log_callback(std::function<void(log_level_t level, std::str
 bool FocusStack::run()
 {
   reset();
-  start();
-  do_final_merge();
+    start();
+    do_final_merge();
 
   // All temporaries except results can be released now.
   // Anything that is needed is held on by shared_ptrs in the tasks.
@@ -142,9 +143,8 @@ void FocusStack::add_image(std::string filename)
 
 void FocusStack::add_image(const cv::Mat &image)
 {
-  cv::Mat imageCopy = image.clone();
   std::string name = "memimg-" + std::to_string(m_input_images.size()) + ".jpg";
-  m_input_images.push_back(std::make_shared<Task_LoadImg>(name, imageCopy));
+  m_input_images.push_back(std::make_shared<Task_LoadImg>(name, image));
 
   if (m_worker)
   {
@@ -296,9 +296,9 @@ void FocusStack::schedule_queue_processing()
       m_refidx = count / 2;
 
     m_refcolor = m_input_images.at(m_refidx);
-    m_refgray = std::make_shared<Task_Grayscale>(m_refcolor);
-    m_worker->add(m_refcolor);
-    m_worker->add(m_refgray);
+      m_refgray = std::make_shared<Task_Grayscale>(m_refcolor);
+      m_worker->add(m_refcolor);
+      m_worker->add(m_refgray);
 
     m_grayscale_imgs.at(m_refidx) = m_refgray;
   }
@@ -321,9 +321,9 @@ void FocusStack::schedule_queue_processing()
 
       // Convert image to grayscale
       // The reference image is used to calculate the best mapping, which is then used for all images.
-      m_grayscale_imgs.at(i) = std::make_shared<Task_Grayscale>(m_input_images.at(i), m_refgray);
-      m_worker->add(m_grayscale_imgs.at(i));
-    }
+        m_grayscale_imgs.at(i) = std::make_shared<Task_Grayscale>(m_input_images.at(i), m_refgray);
+        m_worker->add(m_grayscale_imgs.at(i));
+      }
 
     // Track the indexes for depthmap
     m_input_images.at(i)->set_index(i);
@@ -412,7 +412,7 @@ void FocusStack::schedule_alignment(int i)
     aligned = std::make_shared<Task_Align>(m_refgray, m_refcolor, m_refgray, m_refcolor);
   }
 
-  m_aligned_imgs.at(i) = aligned;
+    m_aligned_imgs.at(i) = aligned;
   m_worker->add(aligned);
 }
 

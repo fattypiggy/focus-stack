@@ -9,7 +9,7 @@ project(focus-stack)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #set(OpenCV_DIR "C:/tools/opencv/mingw_build/install")
-set(OpenCV_DIR "C:\/dev\/opencv\/build")
+set(OpenCV_DIR "C:/dev/opencv/vc_build/install")
 find_package(OpenCV REQUIRED)
 
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/external/focus-stack/src)

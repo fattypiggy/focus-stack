@@ -32,14 +32,35 @@ Task_SaveImg::Task_SaveImg(std::string filename, std::shared_ptr<ImgTask> input,
 
 void Task_SaveImg::task()
 {
+  // Get input image and valid area
+  cv::Mat inputImg = m_input->img();
+  cv::Rect validArea = m_input->valid_area();
+  
   if (m_nocrop)
   {
-    m_result = m_input->img();
-    m_valid_area = m_input->valid_area();
+    // Even with nocrop, ensure we extract the original image area without padding
+    if (has_valid_area() && (validArea.x > 0 || validArea.y > 0 || 
+        validArea.width < inputImg.cols || validArea.height < inputImg.rows)) {
+      m_logger->verbose("%s extracting original area from padded image: x=%d, y=%d, w=%d, h=%d\n",
+                      m_filename.c_str(), validArea.x, validArea.y, 
+                      validArea.width, validArea.height);
+      m_result = extract_original_area(inputImg);
+      m_valid_area = cv::Rect(0, 0, m_result.cols, m_result.rows);
+    } else {
+      // No padding to remove
+      m_result = inputImg;
+      m_valid_area = validArea;
+    }
   }
   else
   {
-    cv::Size origsize = m_input->img().size();
+    // When cropping, still ensure we're using the original image area
+    cv::Size origsize = inputImg.size();
+    
+    // First extract the valid area (without padding)
+    cv::Mat unpadded = extract_original_area(inputImg);
+    
+    // Then perform normal cropping
     m_result = m_input->img_cropped();
     m_valid_area = cv::Rect(0, 0, m_result.cols, m_result.rows);
 
@@ -78,7 +99,13 @@ void Task_SaveImg::task()
 
     if (m_nocrop)
     {
-      channels[3] = m_alphamask->img();
+      // Also extract valid area from alpha mask
+      cv::Mat maskImg = m_alphamask->img();
+      if (m_alphamask->has_valid_area()) {
+        channels[3] = m_alphamask->extract_original_area(maskImg);
+      } else {
+        channels[3] = maskImg;
+      }
     }
     else
     {
